@@ -1,0 +1,487 @@
+<title>FinMate</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #0a0a0a;
+    --border: #e5e5e5;
+    --muted: #737373;
+    --hover: #fafafa;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0a0a0a;
+      --fg: #fafafa;
+      --border: #262626;
+      --muted: #a3a3a3;
+      --hover: #1a1a1a;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0a0a0a;
+    --fg: #fafafa;
+    --border: #262626;
+    --muted: #a3a3a3;
+    --hover: #1a1a1a;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  .nav {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 0;
+    backdrop-filter: blur(8px);
+    z-index: 100;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .nav-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+  }
+
+  .nav-links a {
+    color: var(--fg);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover {
+    color: var(--muted);
+  }
+
+  .hero {
+    padding: 8rem 0 6rem;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  h1 {
+    font-size: 4rem;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin: 0 0 1.5rem 0;
+  }
+
+  .hero p {
+    font-size: 1.25rem;
+    color: var(--muted);
+    margin-bottom: 2rem;
+    max-width: 450px;
+  }
+
+  .cta {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .btn {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .btn-primary {
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  .btn-primary:hover {
+    opacity: 0.8;
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--fg);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover {
+    background: var(--hover);
+  }
+
+  .hero-visual {
+    border: 1px solid var(--border);
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+  }
+
+  .section {
+    padding: 6rem 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .section-title {
+    font-size: 3rem;
+    font-weight: 700;
+    text-align: center;
+    margin: 0 0 4rem 0;
+    letter-spacing: -0.02em;
+  }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 2rem;
+  }
+
+  .feature {
+    border: 1px solid var(--border);
+    padding: 2.5rem;
+    transition: all 0.3s;
+  }
+
+  .feature:hover {
+    transform: translateY(-4px);
+    border-color: var(--fg);
+  }
+
+  .feature-icon {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .feature h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+  }
+
+  .feature p {
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 3rem;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .step {
+    text-align: center;
+  }
+
+  .step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    border: 2px solid var(--fg);
+    border-radius: 50%;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+  }
+
+  .step h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+  }
+
+  .step p {
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 4rem 0 2rem;
+    margin-top: 6rem;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 3rem;
+    margin-bottom: 3rem;
+  }
+
+  .footer h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+  }
+
+  .footer p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .footer-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover {
+    color: var(--fg);
+  }
+
+  .footer-bottom {
+    border-top: 1px solid var(--border);
+    padding-top: 2rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .fade-in {
+    animation: fadeIn 0.8s ease-out;
+  }
+
+  .slide-up {
+    animation: slideUp 0.8s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 2.5rem;
+    }
+
+    .hero-grid {
+      grid-template-columns: 1fr;
+      text-align: center;
+    }
+
+    .hero p {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .cta {
+      justify-content: center;
+    }
+
+    .nav-links {
+      display: none;
+    }
+
+    .section-title {
+      font-size: 2rem;
+    }
+  }
+</style>
+
+<nav class="nav">
+  <div class="container">
+    <div class="nav-inner fade-in">
+      <div class="logo">FinMate</div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#upload">Upload</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <section class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="slide-up">
+          <h1>AI-Powered<br>Financial<br>Analysis</h1>
+          <p>Transform your bank statements into actionable insights with local AI processing. Your data stays private, always.</p>
+          <div class="cta">
+            <button class="btn btn-primary">Get Started</button>
+            <button class="btn btn-secondary">Learn More</button>
+          </div>
+        </div>
+        <div class="hero-visual fade-in">
+          📊
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="section">
+    <div class="container">
+      <h2 class="section-title">Why Choose FinMate?</h2>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🔒</div>
+          <h3>Privacy First</h3>
+          <p>All processing happens locally on your device. No data leaves your computer. Your financial information stays completely private.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🤖</div>
+          <h3>AI-Powered Insights</h3>
+          <p>Leverage local Small Language Models to automatically categorize transactions, identify spending patterns, and get personalized recommendations.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📊</div>
+          <h3>Beautiful Visualizations</h3>
+          <p>See your spending habits come alive with clean, intuitive charts and graphs that make understanding your finances effortless.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <h3>Lightning Fast</h3>
+          <p>Optimized for performance with instant uploads, real-time processing, and smooth animations throughout the experience.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how-it-works" class="section">
+    <div class="container">
+      <h2 class="section-title">How It Works</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Upload Your Statement</h3>
+          <p>Securely upload your bank statement in PDF format. We support all major banks and statement formats.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>AI Processing</h3>
+          <p>Our local AI model extracts transactions, categorizes expenses, and identifies patterns - all without sending your data anywhere.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Get Insights</h3>
+          <p>View your financial dashboard with spending insights, category breakdowns, and personalized recommendations to improve your financial health.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h3>FinMate</h3>
+        <p>AI-powered financial analysis tool built for privacy-conscious users who want to understand their spending without compromising security.</p>
+      </div>
+      <div>
+        <h3>Features</h3>
+        <div class="footer-links">
+          <a href="#">PDF Upload</a>
+          <a href="#">Transaction Categorization</a>
+          <a href="#">Spending Insights</a>
+          <a href="#">Local AI Processing</a>
+        </div>
+      </div>
+      <div>
+        <h3>Resources</h3>
+        <div class="footer-links">
+          <a href="#">Documentation</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+          <a href="#">GitHub</a>
+        </div>
+      </div>
+      <div>
+        <h3>Connect</h3>
+        <div class="footer-links">
+          <a href="#">Twitter</a>
+          <a href="#">GitHub</a>
+          <a href="#">LinkedIn</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © 2026 FinMate. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.feature, .step').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+    observer.observe(el);
+  });
+</script>
