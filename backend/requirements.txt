@@ -4,3 +4,10 @@ pydantic
 pydantic-settings
 pymupdf
 python-multipart
+ollama
+sqlalchemy
+alembic
+psycopg2-binary
+pytest
+pytest-asyncio
+httpx
