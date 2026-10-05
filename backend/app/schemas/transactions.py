@@ -4,12 +4,12 @@ Pydantic schemas for transaction-related API endpoints.
 
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from datetime import date
+from datetime import date as date_type
 
 
 class TransactionBase(BaseModel):
     """Base transaction schema."""
-    date: date = Field(..., description="Transaction date")
+    date: date_type = Field(..., description="Transaction date")
     description: str = Field(..., description="Transaction description/merchant")
     amount: float = Field(..., description="Transaction amount (negative for debits)")
     balance: Optional[float] = Field(None, description="Account balance after transaction")
