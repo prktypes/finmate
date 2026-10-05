@@ -1,0 +1,17 @@
+﻿BANK STATEMENT
+Account: ****1234
+Statement Period: 01/01/2024 - 01/31/2024
+
+DATE        DESCRIPTION                 AMOUNT      BALANCE
+01/03/2024  AMAZON MARKETPLACE          -45.99      2,454.01
+01/05/2024  STARBUCKS STORE #1234       -5.75       2,448.26
+01/07/2024  SALARY DEPOSIT              +2,500.00   4,948.26
+01/10/2024  NETFLIX SUBSCRIPTION        -15.99      4,932.27
+01/12/2024  SHELL GAS STATION           -40.00      4,892.27
+01/15/2024  WHOLE FOODS MARKET          -87.50      4,804.77
+01/18/2024  UBER RIDE                   -12.50      4,792.27
+01/20/2024  PHARMACY                    -25.00      4,767.27
+01/22/2024  ELECTRIC BILL               -75.00      4,692.27
+01/25/2024  GROCERY STORE               -63.25      4,629.02
+01/28/2024  RESTAURANT                  -35.00      4,594.02
+01/30/2024  INTERNET SERVICE            -60.00      4,534.02
