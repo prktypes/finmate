@@ -19,12 +19,12 @@ logger = logging.getLogger(__name__)
 class LLMService:
     """Service for interacting with local LLM via Ollama."""
 
-    def __init__(self, model: str = "llama3.2"):
+    def __init__(self, model: str = "phi3:mini"):
         """
         Initialize LLM service.
 
         Args:
-            model: Ollama model name (default: llama3.2)
+            model: Ollama model name (default: phi3:mini)
         """
         self.model = model
         self.client = ollama.Client()
