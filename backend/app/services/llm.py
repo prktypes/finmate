@@ -274,6 +274,73 @@ def get_llm_service(model: str = "phi3:mini") -> LLMService:
     return _llm_service
 
 
+def get_model_info(model: str = None) -> dict:
+    """
+    Get information about an Ollama model configuration.
+
+    Useful for display in UI, documentation, or validation purposes.
+
+    Args:
+        model: Ollama model name. If None, uses the default model.
+
+    Returns:
+        Dictionary with model information:
+        - model: model name
+        - default: whether this is the default model
+        - recommended_for: primary use case recommendations
+        - approximate_size: rough parameter count and size
+        - strengths: key strengths for financial tasks
+    """
+    m = model or "phi3:mini"
+    info = {
+        "model": m,
+        "default": m == "phi3:mini",
+        "recommended_for": [],
+        "approximate_size": "3B parameters, ~2GB GGUF format",
+        "strengths": []
+    }
+
+    # Model-specific recommendations
+    if m == "phi3:mini":
+        info["recommended_for"] = [
+            "Transaction extraction from bank statements",
+            "Category classification",
+            "Merchant name normalization",
+            "Financial insights generation",
+            "Spending pattern analysis"
+        ]
+        info["strengths"] = [
+            "Excellent instruction following",
+            "Strong structured output (JSON) generation",
+            "Good reasoning for financial analysis",
+            "Balanced quality/size ratio"
+        ]
+    elif m == "llama3.2":
+        info["recommended_for"] = [
+            "General financial text analysis",
+            "Transaction parsing",
+            "Category sorting"
+        ]
+        info["strengths"] = [
+            "Good all-around performance",
+            "Optimized for inference",
+            "Strong English language handling"
+        ]
+    elif m == "qwen2:3b":
+        info["recommended_for"] = [
+            "Complex financial reasoning",
+            "Multi-step analysis",
+            "Natural language query understanding"
+        ]
+        info["strengths"] = [
+            "Strong reasoning capabilities",
+            "Good context understanding",
+            "Handles complex prompts well"
+        ]
+
+    return info
+
+
 def test_model_connection(model: str = "phi3:mini") -> dict:
     """
     Test that the specified Ollama model is accessible and responsive.
