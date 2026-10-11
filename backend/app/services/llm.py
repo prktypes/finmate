@@ -12,6 +12,8 @@ import ollama
 from typing import List, Dict, Any, Optional
 import json
 import logging
+from pydantic import Field
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +40,7 @@ class LLMService:
         - qwen2:3b    (alternative: strong reasoning capabilities)
         """
         self.model = model
-        self.client = ollama.Client()
+        self.client = ollama.Client(host=getattr(settings, 'ollama_host', 'http://localhost:11434'))
 
     def extract_transactions(self, statement_text: str) -> List[Dict[str, Any]]:
         """
