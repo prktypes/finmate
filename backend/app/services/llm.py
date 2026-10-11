@@ -270,3 +270,56 @@ def get_llm_service(model: str = "phi3:mini") -> LLMService:
     if _llm_service is None:
         _llm_service = LLMService(model=model)
     return _llm_service
+
+
+def test_model_connection(model: str = "phi3:mini") -> dict:
+    """
+    Test that the specified Ollama model is accessible and responsive.
+
+    Performs a minimal inference test to verify the model is working
+    correctly before full usage. Useful for startup validation and
+    troubleshooting model connectivity issues.
+
+    Args:
+        model: Ollama model name to test
+
+    Returns:
+        Dictionary with test results:
+        - success: bool indicating if test passed
+        - model: model name that was tested
+        - response_time: time in seconds for the inference
+        - error: error message if test failed (optional)
+    """
+    import time
+    try:
+        client = ollama.Client()
+        start_time = time.time()
+        response = client.generate(
+            model=model,
+            prompt="Test connection. Respond with exactly: OK",
+            options={"temperature": 0, "num_predict": 1}
+        )
+        elapsed = time.time() - start_time
+
+        # Verify the response contains the expected text
+        if "OK" in response['response']:
+            return {
+                "success": True,
+                "model": model,
+                "response_time": round(elapsed, 3),
+                "response": response['response'].strip()
+            }
+        else:
+            return {
+                "success": False,
+                "model": model,
+                "response_time": round(elapsed, 3),
+                "error": f"Unexpected response: {response['response']}"
+            }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "model": model,
+            "error": str(e)
+        }
