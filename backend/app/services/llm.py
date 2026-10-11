@@ -17,14 +17,25 @@ logger = logging.getLogger(__name__)
 
 
 class LLMService:
-    """Service for interacting with local LLM via Ollama."""
+    """Service for interacting with local LLM via Ollama.
+
+    Provides financial transaction extraction, category classification,
+    merchant normalization, and insights generation using lightweight SLMs.
+    """
 
     def __init__(self, model: str = "phi3:mini"):
         """
         Initialize LLM service.
 
         Args:
-            model: Ollama model name (default: phi3:mini)
+            model: Ollama model name. Defaults to 'phi3:mini' which offers
+                   the best balance of quality and size for financial analysis
+                   tasks (3B parameters, ~2GB GGUF format).
+
+        Supported models:
+        - phi3:mini   (recommended: best quality/size ratio for finance)
+        - llama3.2    (alternative: good all-rounder)
+        - qwen2:3b    (alternative: strong reasoning capabilities)
         """
         self.model = model
         self.client = ollama.Client()
