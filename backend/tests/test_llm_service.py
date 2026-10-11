@@ -11,8 +11,8 @@ class TestLLMService:
 
     def test_llm_service_initialization(self):
         """Test that LLM service initializes correctly."""
-        service = LLMService(model="llama3.2")
-        assert service.model == "llama3.2"
+        service = LLMService(model="phi3:mini")
+        assert service.model == "phi3:mini"
         assert service.client is not None
 
     def test_get_llm_service_singleton(self):

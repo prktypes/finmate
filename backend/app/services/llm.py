@@ -245,12 +245,12 @@ If no transactions found, return: {{"transactions": []}}"""
 _llm_service: Optional[LLMService] = None
 
 
-def get_llm_service(model: str = "llama3.2") -> LLMService:
+def get_llm_service(model: str = "phi3:mini") -> LLMService:
     """
     Get or create the LLM service singleton.
 
     Args:
-        model: Ollama model name
+        model: Ollama model name (default: phi3:mini)
 
     Returns:
         LLMService instance

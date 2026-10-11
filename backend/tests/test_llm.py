@@ -6,8 +6,8 @@ Test script to verify LLM service with phi3:mini model
 import sys
 import os
 
-# Add the backend directory to the path so we can import the LLM service
-sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
+# Add the current directory to the path so we can import the LLM service
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from app.services.llm import LLMService
 
