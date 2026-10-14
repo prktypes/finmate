@@ -2,6 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.statements import router as statements_router
 from app.core.config import settings
+from app.db.base import Base, engine
+import app.models  # noqa: F401 - Register SQLAlchemy models
+
+# Create database tables on startup
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="FinMate API",
@@ -20,15 +25,3 @@ app.add_middleware(
 
 # Include routers
 app.include_router(statements_router)
-
-@app.get("/")
-def read_root():
-    return {
-        "message": "FinMate API",
-        "version": "1.0.0",
-        "environment": settings.environment,
-    }
-
-@app.get("/health")
-def health_check():
-    return {"status": "healthy"}

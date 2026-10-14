@@ -1,9 +1,11 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
-from typing import Dict, List
+from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks, Depends
+from typing import Dict, List, Optional
 import shutil
 import os
 import uuid
 from datetime import datetime
+
+from sqlalchemy.orm import Session
 
 from app.schemas.statements import StatementUploadResponse, StatementStatusResponse, StatementContentResponse
 from app.schemas.transactions import (
@@ -15,24 +17,49 @@ from app.schemas.transactions import (
 from app.core.config import settings
 from app.documents.extraction import extract_text_from_pdf
 from app.services.llm import get_llm_service
+from app.db.session import get_db
+from app.models import Statement, Transaction
 
 router = APIRouter(prefix="/statements", tags=["statements"])
 
-# In-memory storage for phase 1 before PostgreSQL
-statement_db: Dict[str, dict] = {}
 
-def process_statement(statement_id: str, filepath: str):
+def get_statement_or_404(statement_id: str, db: Session) -> Statement:
+    """Get statement from database or raise 404."""
+    statement = db.query(Statement).filter(Statement.id == statement_id).first()
+    if not statement:
+        raise HTTPException(status_code=404, detail="Statement not found.")
+    return statement
+
+
+def process_statement(statement_id: str, filepath: str, db: Session):
+    """Process statement in background: extract text from PDF."""
     try:
-        statement_db[statement_id]["status"] = "processing"
+        # Query the statement to update status
+        statement = db.query(Statement).filter(Statement.id == statement_id).first()
+        if not statement:
+            return
+        
+        statement.status = "processing"
+        db.commit()
+        
         text = extract_text_from_pdf(filepath)
-        statement_db[statement_id]["extracted_text"] = text
-        statement_db[statement_id]["status"] = "completed"
+        statement.extracted_text = text
+        statement.status = "completed"
+        db.commit()
     except Exception as e:
-        statement_db[statement_id]["status"] = "failed"
-        statement_db[statement_id]["error_message"] = str(e)
+        # Statement might already be deleted, skip error handling
+        try:
+            statement = db.query(Statement).filter(Statement.id == statement_id).first()
+            if statement:
+                statement.status = "failed"
+                statement.error_message = str(e)
+                db.commit()
+        except Exception:
+            pass
+
 
 @router.post("/upload", response_model=StatementUploadResponse)
-async def upload_statement(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+async def upload_statement(background_tasks: BackgroundTasks, file: UploadFile = File(...), db: Session = Depends(get_db)):
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
         
@@ -48,55 +75,57 @@ async def upload_statement(background_tasks: BackgroundTasks, file: UploadFile =
             shutil.copyfileobj(file.file, buffer)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
-        
-    # Initialize record
-    statement_db[statement_id] = {
-        "statement_id": statement_id,
-        "filename": file.filename,
-        "filepath": filepath,
-        "status": "pending",
-        "upload_time": datetime.utcnow(),
-        "extracted_text": "",
-        "error_message": None
-    }
+    
+    # Initialize record in database
+    try:
+        statement = Statement(
+            id=statement_id,
+            filename=file.filename,
+            filepath=filepath,
+            status="pending",
+        )
+        db.add(statement)
+        db.commit()
+        db.refresh(statement)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to initialize statement: {str(e)}")
     
     # Process extraction in background
-    background_tasks.add_task(process_statement, statement_id, filepath)
+    background_tasks.add_task(process_statement, statement_id, filepath, db)
     
     return StatementUploadResponse(
-        statement_id=statement_id,
-        filename=file.filename,
-        status="pending",
+        statement_id=statement.id,
+        filename=statement.filename,
+        status=statement.status,
         message="Upload successful, processing started."
     )
 
+
 @router.get("/{statement_id}/status", response_model=StatementStatusResponse)
-async def get_statement_status(statement_id: str):
-    if statement_id not in statement_db:
-        raise HTTPException(status_code=404, detail="Statement not found.")
-        
-    record = statement_db[statement_id]
+async def get_statement_status(statement_id: str, db: Session = Depends(get_db)):
+    statement = get_statement_or_404(statement_id, db)
     return StatementStatusResponse(
-        statement_id=record["statement_id"],
-        status=record["status"],
-        filename=record["filename"],
-        upload_time=record["upload_time"],
-        error_message=record["error_message"]
+        statement_id=statement.id,
+        status=statement.status,
+        filename=statement.filename,
+        upload_time=statement.upload_time,
+        error_message=statement.error_message
     )
 
+
 @router.get("/{statement_id}", response_model=StatementContentResponse)
-async def get_statement(statement_id: str):
-    if statement_id not in statement_db:
-        raise HTTPException(status_code=404, detail="Statement not found.")
-
-    record = statement_db[statement_id]
-    if record["status"] != "completed":
-        raise HTTPException(status_code=400, detail=f"Statement processing is not complete. Current status: {record['status']}")
-
+async def get_statement(statement_id: str, db: Session = Depends(get_db)):
+    statement = get_statement_or_404(statement_id, db)
+    if statement.status != "completed":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Statement processing is not complete. Current status: {statement.status}"
+        )
+    
     return StatementContentResponse(
-        statement_id=record["statement_id"],
-        filename=record["filename"],
-        extracted_text=record["extracted_text"]
+        statement_id=statement.id,
+        filename=statement.filename,
+        extracted_text=statement.extracted_text
     )
 
 
@@ -104,26 +133,24 @@ async def get_statement(statement_id: str):
 async def analyze_statement(
     statement_id: str,
     background_tasks: BackgroundTasks,
-    options: AnalyzeRequest = AnalyzeRequest()
+    options: AnalyzeRequest = AnalyzeRequest(),
+    db: Session = Depends(get_db)
 ):
     """
     Analyze a statement using LLM to extract transactions, classify categories, etc.
     """
-    if statement_id not in statement_db:
-        raise HTTPException(status_code=404, detail="Statement not found.")
-
-    record = statement_db[statement_id]
-    if record["status"] != "completed":
+    statement = get_statement_or_404(statement_id, db)
+    if statement.status != "completed":
         raise HTTPException(
             status_code=400,
-            detail=f"Statement must be processed before analysis. Current status: {record['status']}"
+            detail=f"Statement must be processed before analysis. Current status: {statement.status}"
         )
 
     # Get LLM service
     llm = get_llm_service()
 
     # Extract transactions
-    extracted_text = record["extracted_text"]
+    extracted_text = statement.extracted_text
     transactions = llm.extract_transactions(extracted_text)
 
     # Process each transaction
@@ -149,9 +176,26 @@ async def analyze_statement(
 
         processed_transactions.append(txn)
 
-    # Store transactions in the record
-    record["transactions"] = processed_transactions
-    record["analysis_complete"] = True
+    # Store transactions in the database
+    try:
+        for txn in processed_transactions:
+            db_txn = Transaction(
+                id=txn["id"],
+                statement_id=statement_id,
+                transaction_date=datetime.strptime(txn["date"], "%Y-%m-%d").date() if "date" in txn else datetime.utcnow().date(),
+                description=txn.get("description", ""),
+                amount=txn.get("amount", 0),
+                normalized_merchant=txn.get("normalized_merchant"),
+                category=txn.get("category"),
+            )
+            db.add(db_txn)
+        
+        # Mark statement as analyzed
+        statement.analysis_complete = True
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to save transactions: {str(e)}")
 
     return AnalyzeResponse(
         statement_id=statement_id,
@@ -162,40 +206,36 @@ async def analyze_statement(
 
 
 @router.get("/{statement_id}/transactions", response_model=List[TransactionResponse])
-async def get_transactions(statement_id: str):
+async def get_transactions(statement_id: str, db: Session = Depends(get_db)):
     """
     Get all transactions for a statement.
     """
-    if statement_id not in statement_db:
-        raise HTTPException(status_code=404, detail="Statement not found.")
-
-    record = statement_db[statement_id]
-    if not record.get("analysis_complete"):
+    statement = get_statement_or_404(statement_id, db)
+    
+    if not statement.analysis_complete:
         raise HTTPException(
             status_code=400,
             detail="Statement has not been analyzed yet. Call /analyze endpoint first."
         )
-
-    transactions = record.get("transactions", [])
+    
+    transactions = db.query(Transaction).filter(Transaction.statement_id == statement_id).all()
     return transactions
 
 
 @router.get("/{statement_id}/insights", response_model=InsightResponse)
-async def get_insights(statement_id: str):
+async def get_insights(statement_id: str, db: Session = Depends(get_db)):
     """
     Generate financial insights for a statement's transactions.
     """
-    if statement_id not in statement_db:
-        raise HTTPException(status_code=404, detail="Statement not found.")
-
-    record = statement_db[statement_id]
-    if not record.get("analysis_complete"):
+    statement = get_statement_or_404(statement_id, db)
+    
+    if not statement.analysis_complete:
         raise HTTPException(
             status_code=400,
             detail="Statement has not been analyzed yet. Call /analyze endpoint first."
         )
-
-    transactions = record.get("transactions", [])
+    
+    transactions = db.query(Transaction).filter(Transaction.statement_id == statement_id).all()
     if not transactions:
         raise HTTPException(
             status_code=404,
@@ -203,14 +243,14 @@ async def get_insights(statement_id: str):
         )
 
     # Calculate statistics
-    total_spent = sum(t.get("amount", 0) for t in transactions if t.get("amount", 0) < 0)
-    total_income = sum(t.get("amount", 0) for t in transactions if t.get("amount", 0) > 0)
+    total_spent = sum(t.amount for t in transactions if t.amount < 0)
+    total_income = sum(t.amount for t in transactions if t.amount > 0)
 
     # Get top categories
     categories = {}
     for t in transactions:
-        cat = t.get("category", "Other")
-        amount = abs(t.get("amount", 0))
+        cat = t.category or "Other"
+        amount = abs(t.amount)
         categories[cat] = categories.get(cat, 0) + amount
 
     # Sort and get top 5

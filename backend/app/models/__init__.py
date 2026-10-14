@@ -17,6 +17,7 @@ class Statement(Base):
     filename = Column(String, nullable=False)
     upload_time = Column(DateTime(timezone=True), server_default=func.now())
     processing_status = Column(String, default="pending")  # pending, processing, completed, failed
+    analysis_complete = Column(default=False)  # whether LLM analysis is complete
     extracted_text = Column(Text, nullable=True)
     error_message = Column(Text, nullable=True)
 
