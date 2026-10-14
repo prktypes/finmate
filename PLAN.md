@@ -107,11 +107,39 @@ Docker not currently available in this environment. Code changes made are databa
 2. `alembic upgrade head` (creates tables: statements, categories, merchants, transactions)
 3. Full stack test with real data persistence
 
-### ⏳ Phase 5: Advanced Analytics - TODO
-- Spending analysis utilities (category totals, recurring transactions, spending trends)
-- Data visualization components (Recharts: Pie chart, Line chart, Merchant Bar Chart)
-- Budget features (setting, tracking, alerts, recommendations)
-- Natural language query interface (LLM-powered query parsing and execution)
+### 🔄 Phase 5: Advanced Analytics - IN PROGRESS
+
+#### Completed This Session ✅
+- [x] Created `app/services/analytics.py` with spending analysis utilities:
+    - `SpendingAnalysis.calculate_category_totutions()` - category-wise spending totals
+    - `SpendingAnalysis.calculate_monthly_averages()` - average monthly spending
+    - `SpendingAnalysis.detect_recurring_transcriptions()` - identify recurring payments
+    - `SpendingAnalysis.detect_anomalies()` - flag unusual transactions (2+ std devs from mean)
+    - `SpendingAnalysis.calculate_net_flow()` - total spent vs received
+    - `BudgetMonitor.check_budget_limits()` - check spending against budget thresholds
+    - `FinancialInsightsGenerator.generate_insights()` - generate human-readable financial insights
+- [x] File placed at `backend/app/services/analytics.py`
+
+#### In-Progress This Session 🔄
+- [ ] Integrate analytics service with API endpoints
+- [ ] Create React hooks for analytics data fetching
+- [ ] Add analytics visualizations to Dashboard page
+- [ ] Budget feature UI components
+- [ ] Natural language query interface design
+
+#### Next Steps
+- [ ] Wire analytics service into dashboard analytics section
+- [ ] Create budget setting and tracking UI
+- [ ] Implement recurring transaction detection UI
+- [ ] Add anomaly alert system
+- [ ] Design natural language query interface
+
+#### Note
+Analytics utilities are backend-ready. Frontend integration will require:
+- React hooks to fetch from `/api/statements/{id}/transactions`
+- Chart components using Recharts (already installed)
+- Budget form components
+- Insights display component
 
 ### ⏳ Phase 6: Privacy & Security - TODO
 - JWT authentication middleware
